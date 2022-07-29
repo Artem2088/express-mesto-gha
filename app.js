@@ -4,7 +4,6 @@ const userRouter = require('./routes/user');
 const cardRouter = require('./routes/card');
 const bodyParser = require('body-parser');
 const { doesUserExist } = require('./middleware/middleError');
-const { userId } = require('./middleware/hardUserId');
 const { Internal_Server_Error } = require('./utils/error');
 const process = require('process');
 
@@ -24,7 +23,14 @@ mongoose
     console.err(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
  });
 
-app.use(userId);
+ app.use((req, res, next) => {
+  req.user = {
+    _id: '5d8b8592978f8bd833ca8133' // вставьте сюда _id созданного в предыдущем пункте пользователя
+  };
+
+  next();
+});
+
 app.use(doesUserExist);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
