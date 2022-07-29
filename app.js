@@ -20,7 +20,7 @@ mongoose
   .catch((error) => handleError(error));
 
   process.on('uncaughtException', (err, origin) => {
-    console.err(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
+    console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
  });
 
  app.use((req, res, next) => {

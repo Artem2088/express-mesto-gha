@@ -18,7 +18,8 @@ module.exports.getUserById = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
-  User.create({ name, about, avatar })
+  User.create({ name, about, avatar, new: true, runValidators: true })
+    .orFail()
     .then((newUser) => res.send({ data: newUser }))
     .catch((err) => BAD_REQUEST(err, req, res));
 };
