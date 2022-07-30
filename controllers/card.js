@@ -11,13 +11,17 @@ const getCards = (req, res) => {
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
+  const {_id} = req.user
   Card.create({
+    likes: [],
     name,
     link,
-    owner: req.user._id,
+    owner: _id,
     new: true,
     runValidators: true,
   })
+    // .orFail(() => Error('Карточка не добавлена'))
+    .then((card) => card.populate('owner'))
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => BAD_REQUEST(err, req, res));
 };
