@@ -11,7 +11,13 @@ const getCards = (req, res) => {
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
-  Card.create({ name, link, owner: req.user._id })
+  Card.create({
+    name,
+    link,
+    owner: req.user._id,
+    new: true,
+    runValidators: true,
+  })
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => BAD_REQUEST(err, req, res));
 };
@@ -50,4 +56,4 @@ const dislikeCard = (req, res) => {
     .catch((err) => Document_Not_Found(err, req, res));
 };
 
-module.exports = {getCards, createCard, deleteCard, likeCard,  dislikeCard}
+module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard };
