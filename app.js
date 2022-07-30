@@ -23,6 +23,9 @@ mongoose
     console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
  });
 
+ //Функция промежуточной обработки ошибок
+app.use(Internal_Server_Error);
+
  app.use((req, res, next) => {
   req.user = {
     _id: '5d8b8592978f8bd833ca8133' // вставьте сюда _id созданного в предыдущем пункте пользователя
@@ -34,10 +37,9 @@ mongoose
 app.use(doesUserExist);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/users', userRouter);
+app.use('/', userRouter);
 app.use('/cards', cardRouter);
-//Функция промежуточной обработки ошибок
-app.use(Internal_Server_Error);
+
 
 
 app.listen(PORT, () => {

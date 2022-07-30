@@ -7,14 +7,14 @@ const {
   patchAvatar,
 } = require('../controllers/user');
 
-userRouter.get('/', getUsers);
+userRouter.get('/users', getUsers);
 
-userRouter.get('/:userId', getUserById);
+userRouter.get('/users/:userId', getUserById);
 
-userRouter.post('/', createUser);
+userRouter.post('/users', createUser);
 
-userRouter.patch('/me', patchMe);
+userRouter.patch('/users/me', patchMe);
 
-userRouter.patch('/me/avatar', patchAvatar);
+userRouter.patch('/users/me/avatar', patchAvatar);
 
 module.exports = userRouter;

@@ -1,9 +1,5 @@
 const BAD_REQUEST = (err, req, res) => {
-  if (err.name === 'CastError') {
-    res.status(400).send({ message: 'Hекорректные данные' });
-    return;
-  }
-  if (err.name === 'ValidationError') {
+  if (err.name === 'CastError || ValidationError') {
     res.status(400).send({ message: 'Hекорректные данные' });
     return;
   }
