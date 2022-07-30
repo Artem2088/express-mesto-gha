@@ -1,7 +1,7 @@
 const Card = require('../models/card');
 const { BAD_REQUEST, Document_Not_Found } = require('../utils/error');
 
-module.exports.getCards = (req, res) => {
+const getCards = (req, res) => {
   Card.find({})
     .populate('owner')
     .orFail()
@@ -9,14 +9,14 @@ module.exports.getCards = (req, res) => {
     .catch((err) => BAD_REQUEST(err, req, res));
 };
 
-module.exports.createCard = (req, res) => {
+const createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => BAD_REQUEST(err, req, res));
 };
 
-module.exports.deleteCard = (req, res) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
     .populate('owner')
     .orFail()
@@ -24,7 +24,7 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => Document_Not_Found(err, req, res));
 };
 
-module.exports.likeCard = (req, res) => {
+const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -37,7 +37,7 @@ module.exports.likeCard = (req, res) => {
     .catch((err) => Document_Not_Found(err, req, res));
 };
 
-module.exports.dislikeCard = (req, res) => {
+const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -49,3 +49,5 @@ module.exports.dislikeCard = (req, res) => {
     .catch((err) => BAD_REQUEST(err, req, res))
     .catch((err) => Document_Not_Found(err, req, res));
 };
+
+module.exports = {getCards, createCard, deleteCard, likeCard,  dislikeCard}
