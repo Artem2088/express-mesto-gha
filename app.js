@@ -38,7 +38,7 @@ app.use(doesUserExist);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', userRouter);
-app.use('/cards', cardRouter);
+app.use('/', cardRouter);
 
 
 

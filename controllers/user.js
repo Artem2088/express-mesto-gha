@@ -9,7 +9,7 @@ const getUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  const {userId} = req.params
+  const {userId} = req.params.id
   User.findById(userId)
     .orFail(() => Error('Ошибка'))
     .then((user) => res.send({ data: user }))
