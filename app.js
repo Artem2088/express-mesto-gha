@@ -23,12 +23,9 @@ mongoose
 //     console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
 //  });
 
- //Функция промежуточной обработки ошибок
-
-
- app.use((req, res, next) => {
+app.use((req, res, next) => {
   req.user = {
-    _id: '5d8b8592978f8bd833ca8133' // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '5d8b8592978f8bd833ca8133', // вставьте сюда _id созданного в предыдущем пункте пользователя
   };
 
   next();
@@ -40,8 +37,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/', userRouter);
 app.use('/', cardRouter);
-
-
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
