@@ -1,63 +1,64 @@
 const Card = require('../models/card');
-const { BAD_REQUEST, Document_Not_Found } = require('../utils/error');
+const DocumentNotFound = require('../utils/documentNotFound');
+const IncorrectDate = require('../utils/incorrectDate');
 
-const getCards = (req, res) => {
+
+const getCards = (req, res, next) => {
   Card.find({})
-    .populate('owner')
-    .orFail()
-    .then((card) => res.send({ data: card }))
-    .catch((err) => BAD_REQUEST(err, req, res));
+    .then((cards) => res.send(cards))
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const {_id} = req.user
+
   Card.create({
-    likes: [],
     name,
     link,
-    owner: _id,
+    owner: req.user._id,
     new: true,
-    runValidators: true,
+    runValidators: true
+  }).orFail(() => {
+    throw new IncorrectDate('Ошибка ввода данных')
   })
-    // .orFail(() => Error('Карточка не добавлена'))
-    .then((card) => card.populate('owner'))
-    .then((newCard) => res.send({ data: newCard }))
-    .catch((err) => BAD_REQUEST(err, req, res));
+    .then((newCard) => res.send(newCard))
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+
+const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.id)
-    .populate('owner')
-    .orFail()
+  .orFail(() => {
+    throw new DocumentNotFound('Такой карточки не существует!')
+  })
     .then((deleteCard) => res.send({ data: deleteCard }))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true }
   )
-    .populate('owner')
-    .orFail()
+    .orFail(() => {
+      throw new DocumentNotFound('Такой карточки не существует!')
+    })
     .then((likeCard) => res.send({ data: likeCard }))
-    .catch((err) => BAD_REQUEST(err, req, res))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true }
   )
-    .populate('owner')
-    .orFail()
+    .orFail(() => {
+      throw new DocumentNotFound('Такой карточки не существует!')
+    })
     .then((dislikeCard) => res.send({ data: dislikeCard }))
-    .catch((err) => BAD_REQUEST(err, req, res))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
 module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard };

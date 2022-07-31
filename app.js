@@ -4,8 +4,7 @@ const userRouter = require('./routes/user');
 const cardRouter = require('./routes/card');
 const bodyParser = require('body-parser');
 const { doesUserExist } = require('./middleware/middleError');
-const { Internal_Server_Error } = require('./utils/error');
-const process = require('process');
+// const process = require('process');
 
 const { PORT = 3000 } = process.env;
 
@@ -19,12 +18,13 @@ mongoose
   })
   .catch((error) => handleError(error));
 
-  process.on('uncaughtException', (err, origin) => {
-    console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
- });
+//Функция глобальной обработки ошибок
+//   process.on('uncaughtException', (err, origin) => {
+//     console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
+//  });
 
  //Функция промежуточной обработки ошибок
-app.use(Internal_Server_Error);
+
 
  app.use((req, res, next) => {
   req.user = {
@@ -37,6 +37,7 @@ app.use(Internal_Server_Error);
 app.use(doesUserExist);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 app.use('/', userRouter);
 app.use('/', cardRouter);
 

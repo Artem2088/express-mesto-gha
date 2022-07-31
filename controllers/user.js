@@ -1,52 +1,54 @@
 const User = require('../models/user');
-const { BAD_REQUEST, Document_Not_Found } = require('../utils/error');
+const DocumentNotFound = require('../utils/documentNotFound');
+const IncorrectDate = require('../utils/incorrectDate');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
-    .orFail()
     .then((user) => res.send({ data: user }))
-    .catch((err) => BAD_REQUEST(err, req, res));
+    .catch(next);
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   const {userId} = req.params.id
   User.findById(userId)
-    .orFail(() => Error('Ошибка'))
+    .orFail(() => {
+      throw new IncorrectDate('Ошибка ввода данных')})
     .then((user) => res.send({ data: user }))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar, new: true, runValidators: true })
-    .orFail()
+    .orFail(() => {
+      throw new IncorrectDate('Ошибка ввода данных')})
     .then((newUser) => res.send({ data: newUser }))
-    .catch((err) => BAD_REQUEST(err, req, res));
+    .catch(next);
 };
 
-const patchMe = (req, res) => {
+const patchMe = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, {
     new: true, // обработчик then получит на вход обновлённую запись
     runValidators: true, // данные будут валидированы перед изменением
     upsert: true, // если пользователь не найден, он будет создан
   })
-    .orFail()
+    .orFail(() => {
+      throw new IncorrectDate('Ошибка ввода данных')})
     .then((patchMe) => res.send({ data: patchMe }))
-    .catch((err) => BAD_REQUEST(err, req, res))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
-const patchAvatar = (req, res) => {
+const patchAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, {
     new: true,
     runValidators: true,
     upsert: true,
   })
-    .orFail()
+    .orFail(() => {
+      throw new IncorrectDate('Ошибка ввода данных')})
     .then((patchAvatar) => res.send({ data: patchAvatar }))
-    .catch((err) => BAD_REQUEST(err, req, res))
-    .catch((err) => Document_Not_Found(err, req, res));
+    .catch(next);
 };
 
 module.exports = {getUsers, getUserById, createUser, patchMe, patchAvatar};

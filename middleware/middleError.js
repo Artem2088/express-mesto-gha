@@ -1,6 +1,6 @@
 const doesUserExist = (req, res, next) => {
   if (!req.user._id) {
-    res.send(`Такого пользователя не существует`);
+    res.send(`Такого пользователя не существует!`);
     return;
   }
 
