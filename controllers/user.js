@@ -60,7 +60,7 @@ module.exports.patchMe = (req, res) => {
     .catch((err) => {
       if (err.statusCode === 404) {
         res.status(404).send({ message: 'Нет данных по переданному id' });
-      } else if (err.name === 'CastError') {
+      } else if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Невалидный id' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
