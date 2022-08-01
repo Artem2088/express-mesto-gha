@@ -1,10 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const userRouter = require('./routes/user');
 const cardRouter = require('./routes/card');
-const bodyParser = require('body-parser');
 const { doesUserExist } = require('./middleware/middleError');
-// const process = require('process');
 
 const { PORT = 3000 } = process.env;
 
@@ -16,12 +15,14 @@ mongoose
     useUnifiedTopology: true,
     family: 4,
   })
-  .catch((error) => handleError(error));
-
-//Функция глобальной обработки ошибок
-//   process.on('uncaughtException', (err, origin) => {
-//     console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
-//  });
+  .catch((err) => {
+    res.status(err.status);
+    res.json({
+      status: err.status,
+      message: err.message,
+      stack: err.stack,
+    });
+  });
 
 app.use((req, res, next) => {
   req.user = {
@@ -37,6 +38,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/', userRouter);
 app.use('/', cardRouter);
+
+app.use((req, res) => {
+  res.status(404).send({ message: 'Страница не найдена' });
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
