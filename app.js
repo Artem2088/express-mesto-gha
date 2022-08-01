@@ -15,7 +15,7 @@ mongoose
     useUnifiedTopology: true,
     family: 4,
   })
-  .catch((err) => {
+  .catch((err, res) => {
     res.status(err.status);
     res.json({
       status: err.status,

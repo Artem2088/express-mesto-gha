@@ -2,14 +2,14 @@ const Card = require('../models/card');
 const DocumentNotFound = require('../utils/documentNotFound');
 
 // возвращает все карточки из базы данных
-const getCards = (req, res) => {
+module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
 // создает новую карточку по переданным параметрам.
-const createCard = (req, res) => {
+module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({
@@ -22,17 +22,17 @@ const createCard = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Некорректные данные' });
       }
-    })
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка' }));
+      return res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 // удаляет карточку по _id
-const deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
-    .then((deleteCard) => res.send({ data: deleteCard }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.statusCode === 404) {
         res.status(404).send({ message: 'Нет данных по переданному id' });
@@ -45,7 +45,7 @@ const deleteCard = (req, res) => {
 };
 
 // добавляет лайк карточке.
-const likeCard = (req, res) => {
+module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -54,7 +54,7 @@ const likeCard = (req, res) => {
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
-    .then((likeCard) => res.send({ data: likeCard }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.statusCode === 404) {
         res.status(404).send({ message: 'Нет данных по переданному id' });
@@ -67,16 +67,16 @@ const likeCard = (req, res) => {
 };
 
 // запрос удаляет лайк с карточки.
-const dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true }
+    { new: true },
   )
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
-    .then((dislikeCard) => res.send({ data: dislikeCard }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.statusCode === 404) {
         res.status(404).send({ message: 'Нет данных по переданному id' });
@@ -87,5 +87,3 @@ const dislikeCard = (req, res) => {
       }
     });
 };
-
-module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard };
