@@ -1,48 +1,80 @@
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const DocumentNotFound = require('../utils/documentNotFound');
 
+// возвращает пользователя
+module.exports.getUserMe = (req, res, next) => {
+  const { userId } = req.params;
+
+  User.findById(userId).select('+password')
+    .orFail(() => {
+      throw new DocumentNotFound('Данного пользователя не существует!');
+    })
+    .then((user) => res.send({ data: user }))
+    .catch(next);
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.token({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
+    })
+    .catch(next);
+};
+
 // возвращает всех пользователей из базы данных
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find()
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
 // создаёт пользователя
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((newUser) => res.send({ data: newUser }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Некорректные данные' });
-      }
-      return res.status(500).send({ message: 'Произошла ошибка' });
-    });
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash, // записываем хеш в базу
+    }))
+    .then((user) => {
+      res.status(201).send({
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      });
+    })
+    .catch(next);
 };
 
 // возвращает пользователя по переданному _id
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail(() => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: 'Нет данных по переданному id' });
-      } else if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Невалидный id' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
+    .catch(next);
 };
 
 // обновляет информацию о пользователе
-module.exports.patchMe = (req, res) => {
+module.exports.patchMe = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -57,19 +89,11 @@ module.exports.patchMe = (req, res) => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: 'Нет данных по переданному id' });
-      } else if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Невалидный id' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
+    .catch(next);
 };
 
 // обновляет аватар пользователя
-module.exports.patchAvatar = (req, res) => {
+module.exports.patchAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -84,13 +108,5 @@ module.exports.patchAvatar = (req, res) => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: 'Нет данных по переданному id' });
-      } else if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Невалидный id' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
+    .catch(next);
 };
