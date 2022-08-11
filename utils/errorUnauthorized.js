@@ -1,8 +1,8 @@
-class errorUnauthorized extends Error {
+class ErrorUnauthorized extends Error {
   constructor(message) {
     super(message);
     this.statusCode = 401;
   }
 }
 
-module.exports = errorUnauthorized;
+module.exports = ErrorUnauthorized;

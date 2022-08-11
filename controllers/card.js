@@ -1,4 +1,6 @@
+/* eslint-disable linebreak-style */
 const Card = require('../models/card');
+const DeleteCard = require('../utils/deleteCard');
 const DocumentNotFound = require('../utils/documentNotFound');
 
 // возвращает все карточки из базы данных
@@ -11,18 +13,24 @@ module.exports.getCards = (req, res, next) => {
 // создает новую карточку по переданным параметрам.
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-
-  Card.create({
-    name,
-    link,
-    owner: req.user._id,
-  })
-    .then((newCard) => res.send(newCard))
-    .catch(next);
+  try {
+    Card.create({
+      name,
+      link,
+      owner: req.user._id,
+    })
+      .then((newCard) => res.send(newCard));
+  } catch (err) {
+    next(err);
+  }
 };
 
 // удаляет карточку по _id
 module.exports.deleteCard = (req, res, next) => {
+  const owner = req.user._id;
+  if (!owner === req.user._id) {
+    throw new DeleteCard('Нет прав удалять чужие карточки!');
+  }
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');

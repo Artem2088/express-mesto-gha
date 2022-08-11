@@ -17,10 +17,10 @@ userRouter.get('/users', getUsers);
 
 userRouter.get('/users/:userId', validationGetUserById, getUserById);
 
+userRouter.get('/users/me', validationGetUserMe, getUserMe);
+
 userRouter.patch('/users/me', validationPatchMe, patchMe);
 
 userRouter.patch('/users/me/avatar', validationPatchAvatar, patchAvatar);
-
-userRouter.get('/users/me', validationGetUserMe, getUserMe);
 
 module.exports = userRouter;

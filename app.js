@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 /* eslint-disable no-console */
 const express = require('express');
 const mongoose = require('mongoose');
@@ -29,12 +30,13 @@ mongoose
     });
   });
 
+app.use(bodyParser.json());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.post('/signin', validationLogin, login);
 app.post('/signup', validationCreateUser, createUser);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());
 app.use('/', auth, userRouter);
 app.use('/', auth, cardRouter);
 
@@ -43,9 +45,8 @@ app.use((req, res) => {
   res.status(404).send({ message: 'Страница не найдена' });
 });
 
-// централизованный обработчик
-app.use(centralError);
-app.use(errors); // обработчик ошибок celebrate
+app.use(centralError); // централизованный обработчик
+app.use(errors()); // обработчик ошибок celebrate
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

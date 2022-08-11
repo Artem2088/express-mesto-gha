@@ -1,13 +1,15 @@
+/* eslint-disable linebreak-style */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const DocumentNotFound = require('../utils/documentNotFound');
+const DuplicateError = require('../utils/duplicateError');
 
 // возвращает пользователя
 module.exports.getUserMe = (req, res, next) => {
-  const { userId } = req.params;
+  const userId = req.user._id;
 
-  User.findById(userId).select('+password')
+  User.findById(userId)
     .orFail(() => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
@@ -20,7 +22,7 @@ module.exports.login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.token({ _id: user._id }, 'some-secret-key', {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
         expiresIn: '7d',
       });
       res.send({ token });
@@ -40,26 +42,32 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-
-  bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash, // записываем хеш в базу
-    }))
-    .then((user) => {
-      res.status(201).send({
-        _id: user._id,
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-        email: user.email,
+  try {
+    bcrypt
+      .hash(password, 10)
+      .then((hash) => User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash, // записываем хеш в базу
+      }))
+      .then((user) => {
+        res.status(201).send({
+          _id: user._id,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        });
       });
-    })
-    .catch(next);
+  } catch (err) {
+    if (err.code === 11000) {
+      next(new DuplicateError('Такой `&(email) уже занят'));
+    } else {
+      next(err);
+    }
+  }
 };
 
 // возвращает пользователя по переданному _id
