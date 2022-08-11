@@ -27,15 +27,21 @@ module.exports.createCard = (req, res, next) => {
 
 // удаляет карточку по _id
 module.exports.deleteCard = (req, res, next) => {
-  const owner = req.user._id;
-  if (!owner === req.user._id) {
-    throw new DeleteCard('Нет прав удалять чужие карточки!');
-  }
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (card.owner.toString() === req.user._id) {
+        Card.findOneAndRemove({
+          _id: req.params.cardId,
+          owner: req.user._id,
+        })
+          .orFail(() => {
+            throw new DeleteCard('Нет прав на удаление чужой карточки');
+          });
+      }
+    })
     .catch(next);
 };
 
