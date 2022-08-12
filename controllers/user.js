@@ -38,21 +38,24 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 // создаёт пользователя
-module.exports.createUser = (req, res, next) => {
+module.exports.createUser = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
   try {
-    bcrypt
-      .hash(password, 10)
-      .then((hash) => User.create({
+    const hash = await bcrypt.hash(password, 10);
+    let user = await User.findOne({ email: req.body.email });
+    if (user) {
+      next(new DuplicateError('Такой пользователь существует'));
+    } else {
+      user = await User.create({
         name,
         about,
         avatar,
         email,
         password: hash, // записываем хеш в базу
-      }))
-      .then((user) => {
+      // eslint-disable-next-line no-shadow
+      }).then((user) => {
         res.status(201).send({
           _id: user._id,
           name: user.name,
@@ -61,10 +64,8 @@ module.exports.createUser = (req, res, next) => {
           email: user.email,
         });
       });
-  } catch (err) {
-    if (err.code === 11000) {
-      next(new DuplicateError('Такой пользователь уже существует'));
     }
+  } catch (err) {
     next(err);
   }
 };
