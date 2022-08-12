@@ -43,9 +43,6 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
   try {
-    if (email) {
-      throw new DuplicateError('Такой пользователь существует');
-    }
     bcrypt
       .hash(password, 10)
       .then((hash) => User.create({
@@ -65,6 +62,9 @@ module.exports.createUser = (req, res, next) => {
         });
       });
   } catch (err) {
+    if (err.code === 11000) {
+      next(new DuplicateError('Такой пользователь уже существует'));
+    }
     next(err);
   }
 };
