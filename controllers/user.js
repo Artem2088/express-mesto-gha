@@ -6,15 +6,17 @@ const DocumentNotFound = require('../utils/documentNotFound');
 const DuplicateError = require('../utils/duplicateError');
 
 // возвращает пользователя
-module.exports.getUserMe = (req, res, next) => {
+module.exports.getUserMe = async (req, res, next) => {
   const userId = req.user._id;
-
-  User.findById(userId)
-    .orFail(() => {
-      throw new DocumentNotFound('Данного пользователя не существует!');
-    })
-    .then((user) => res.send({ data: user }))
-    .catch(next);
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      next(new DocumentNotFound('Данного пользователя не существует!'));
+    }
+    res.status(200).send({ data: user });
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports.login = (req, res, next) => {
