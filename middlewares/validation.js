@@ -40,14 +40,14 @@ const validationPatchMe = celebrate({
 
 const validationPatchAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().regex(/[-a-zA-Z0-9@:%_+.~#?&/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&/=]*)?/i),
+    avatar: Joi.string().regex(RegExp),
   }),
 });
 
 const validationCreateCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
-    link: Joi.string().required().regex(/[-a-zA-Z0-9@:%_+.~#?&/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&/=]*)?/i),
+    link: Joi.string().required().regex(RegExp),
   }),
 });
 
