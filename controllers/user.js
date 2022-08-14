@@ -1,9 +1,11 @@
+/* eslint-disable consistent-return */
 /* eslint-disable linebreak-style */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const DocumentNotFound = require('../utils/documentNotFound');
 const DuplicateError = require('../utils/duplicateError');
+const ErrorUnauthorized = require('../utils/errorUnauthorized');
 
 // возвращает пользователя
 module.exports.getUserMe = async (req, res, next) => {
@@ -19,17 +21,24 @@ module.exports.getUserMe = async (req, res, next) => {
   }
 };
 
-module.exports.login = (req, res, next) => {
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
-
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
-        expiresIn: '7d',
-      });
-      res.send({ token });
-    })
-    .catch(next);
+  try {
+    const candidate = await User.findOne({ email: req.body.email });
+    if (!candidate) {
+      next(new ErrorUnauthorized('Необходима регистрация'));
+    } else {
+      return await User.findUserByCredentials(email, password)
+        .then((user) => {
+          const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+            expiresIn: '7d',
+          });
+          res.send({ token, message: 'Успешная авторизация' });
+        });
+    }
+  } catch (err) {
+    next(err);
+  }
 };
 
 // возвращает всех пользователей из базы данных

@@ -34,8 +34,8 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', validationLogin, login);
 app.post('/signup', validationCreateUser, createUser);
+app.post('/signin', validationLogin, login);
 
 app.use('/', auth, userRouter);
 app.use('/', auth, cardRouter);

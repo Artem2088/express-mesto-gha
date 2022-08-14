@@ -1,5 +1,6 @@
 /* eslint-disable linebreak-style */
 const { celebrate, Joi } = require('celebrate');
+const { RegExp } = require('../helpers/regex');
 
 const validationGetUserMe = celebrate({
   body: Joi.object().keys({
@@ -18,7 +19,7 @@ const validationCreateUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(/[-a-zA-Z0-9@:%_+.~#?&/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&/=]*)?/i),
+    avatar: Joi.string().regex(RegExp),
     email: Joi.string().required().email(),
     password: Joi.string().required().alphanum().min(8),
   }),
