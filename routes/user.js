@@ -7,7 +7,6 @@ const {
   getUserMe,
 } = require('../controllers/user');
 const {
-  validationGetUserMe,
   validationGetUserById,
   validationPatchMe,
   validationPatchAvatar,
@@ -15,7 +14,7 @@ const {
 
 userRouter.get('/users', getUsers);
 
-userRouter.get('/users/me', validationGetUserMe, getUserMe);
+userRouter.get('/users/me', getUserMe);
 
 userRouter.get('/users/:userId', validationGetUserById, getUserById);
 

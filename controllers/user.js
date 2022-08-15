@@ -1,11 +1,11 @@
 /* eslint-disable consistent-return */
-/* eslint-disable linebreak-style */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const DocumentNotFound = require('../utils/documentNotFound');
 const DuplicateError = require('../utils/duplicateError');
 const ErrorUnauthorized = require('../utils/errorUnauthorized');
+const BadRequest = require('../utils/badRequest');
 
 // возвращает пользователя
 module.exports.getUserMe = async (req, res, next) => {
@@ -13,31 +13,31 @@ module.exports.getUserMe = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      next(new DocumentNotFound('Данного пользователя не существует!'));
+      return next(new DocumentNotFound('Данного пользователя не существует!'));
     }
-    res.status(200).send({ data: user });
+    res.send({ data: user });
   } catch (err) {
     next(err);
   }
 };
 
-module.exports.login = async (req, res, next) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+
   try {
-    const candidate = await User.findOne({ email: req.body.email });
-    if (!candidate) {
-      next(new ErrorUnauthorized('Необходима регистрация'));
-    } else {
-      return await User.findUserByCredentials(email, password)
-        .then((user) => {
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
-            expiresIn: '7d',
-          });
-          res.send({ token, message: 'Успешная авторизация' });
+    return User.findUserByCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+          expiresIn: '7d',
         });
-    }
+        res.send({ token, message: 'Успешная авторизация' });
+      });
   } catch (err) {
-    next(err);
+    if (err.code === 401) {
+      next(new ErrorUnauthorized(err.message));
+    } else {
+      next(err);
+    }
   }
 };
 
@@ -53,31 +53,33 @@ module.exports.createUser = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
+
   try {
     const hash = await bcrypt.hash(password, 10);
-    let user = await User.findOne({ email: req.body.email });
-    if (user) {
-      next(new DuplicateError('Такой пользователь существует'));
-    } else {
-      user = await User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hash, // записываем хеш в базу
-      // eslint-disable-next-line no-shadow
-      }).then((user) => {
-        res.status(201).send({
-          _id: user._id,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-        });
-      });
-    }
+    const user = await User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash, // записываем хеш в базу
+    });
+    res.send({
+      user: {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
+    });
   } catch (err) {
-    next(err);
+    if (err.code === 11000) {
+      next(new DuplicateError('Пользователь с таким `$(email)` уже существует'));
+    } else if (err.name === 'ValidationError') {
+      next(new BadRequest(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+    } else {
+      next(err);
+    }
   }
 };
 
@@ -108,7 +110,13 @@ module.exports.patchMe = (req, res, next) => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Некорректные данные при создании пользователя'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // обновляет аватар пользователя
@@ -127,5 +135,11 @@ module.exports.patchAvatar = (req, res, next) => {
       throw new DocumentNotFound('Данного пользователя не существует!');
     })
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Некорректные данные при создании пользователя'));
+      } else {
+        next(err);
+      }
+    });
 };

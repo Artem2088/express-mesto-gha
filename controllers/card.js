@@ -2,6 +2,7 @@
 const Card = require('../models/card');
 const DeleteCard = require('../utils/deleteCard');
 const DocumentNotFound = require('../utils/documentNotFound');
+const BadRequest = require('../utils/badRequest');
 
 // возвращает все карточки из базы данных
 module.exports.getCards = (req, res, next) => {
@@ -21,26 +22,27 @@ module.exports.createCard = (req, res, next) => {
     })
       .then((newCard) => res.send(newCard));
   } catch (err) {
-    next(err);
+    if (err.name === 'ValidationError') {
+      next(new BadRequest('Некорректные данные при создании карточки'));
+    } else {
+      next(err);
+    }
   }
 };
 
 // удаляет карточку по _id
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const { id } = req.params;
+  Card.findById(id)
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
     .then((card) => {
-      if (card.owner.toString() === req.user._id) {
-        Card.findOneAndRemove({
-          _id: req.params.cardId,
-          owner: req.user._id,
-        })
-          .orFail(() => {
-            throw new DeleteCard('Нет прав на удаление чужой карточки');
-          });
+      if (!card.owner.equals(req.user._id)) {
+        return next(new DeleteCard('Нет прав на удаление чужой карточки'));
       }
+      return card.remove()
+        .then(() => res.send({ message: 'Карточка удалена успешно' }));
     })
     .catch(next);
 };

@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 /* eslint-disable no-console */
 const express = require('express');
 const mongoose = require('mongoose');
@@ -10,6 +9,7 @@ const { login, createUser } = require('./controllers/user');
 const auth = require('./middlewares/auth');
 const { centralError } = require('./middlewares/centralError');
 const { validationLogin, validationCreateUser } = require('./middlewares/validation');
+const DocumentNotFound = require('./utils/documentNotFound');
 
 const { PORT = 3000 } = process.env;
 
@@ -41,8 +41,12 @@ app.use('/', auth, userRouter);
 app.use('/', auth, cardRouter);
 
 // обработчик не существующей страницы
-app.use((req, res) => {
-  res.status(404).send({ message: 'Страница не найдена' });
+app.use('*', auth, (req, res, next) => {
+  try {
+    next(new DocumentNotFound('Страница не найдена'));
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.use(errors()); // обработчик ошибок celebrate

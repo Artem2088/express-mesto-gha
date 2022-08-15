@@ -2,7 +2,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const isEmail = require('validator/lib/isEmail');
-const DocumentNotFound = require('../utils/documentNotFound');
+const ErrorUnauthorized = require('../utils/errorUnauthorized');
+const { RegExp } = require('../helpers/regex');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -20,6 +21,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/frontend-developer/common/ava.jpg',
+    validate: {
+      validator: RegExp,
+      message: 'Неправильный формат URL',
+    },
   },
   email: {
     type: String,
@@ -34,7 +39,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8,
     select: false,
   },
 });
@@ -43,11 +47,11 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return new DocumentNotFound('Неправильные почта или пароль');
+        throw new ErrorUnauthorized('Неправильные почта или пароль');
       }
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
-          return new DocumentNotFound('Неправильные почта или пароль');
+          throw new ErrorUnauthorized('Неправильные почта или пароль');
         }
         return user;
       });
