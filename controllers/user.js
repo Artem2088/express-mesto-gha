@@ -53,31 +53,33 @@ module.exports.createUser = async (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  const hash = await bcrypt.hash(password, 10);
-  const user = await User.create({
-    name,
-    about,
-    avatar,
-    email,
-    password: hash, // записываем хеш в базу
-  });
-  res.send({
-    user: {
-      _id: user._id,
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      email: user.email,
-    },
-  }).catch((err) => {
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash, // записываем хеш в базу
+    });
+    res.send({
+      user: {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
+    });
+  } catch (err) {
     if (err.code === 11000) {
-      throw new DuplicateError('Пользователь с таким email уже существует');
+      next(new DuplicateError('Пользователь с таким `$(email)` уже существует'));
     } else if (err.name === 'ValidationError') {
-      throw new BadRequest(`${Object.values(err.errors).map((error) => error.message).join(', ')}`);
+      next(new BadRequest(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
     } else {
       next(err);
     }
-  });
+  }
 };
 
 // возвращает пользователя по переданному _id
