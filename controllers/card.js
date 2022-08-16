@@ -14,26 +14,25 @@ module.exports.getCards = (req, res, next) => {
 // создает новую карточку по переданным параметрам.
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  try {
-    Card.create({
-      name,
-      link,
-      owner: req.user._id,
-    })
-      .then((newCard) => res.send(newCard));
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      next(new BadRequest('Некорректные данные при создании карточки'));
-    } else {
-      next(err);
-    }
-  }
+  Card.create({
+    name,
+    link,
+    owner: req.user._id,
+  })
+    .then((newCard) => res.send(newCard))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Некорректные данные при создании карточки'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // удаляет карточку по _id
 module.exports.deleteCard = (req, res, next) => {
-  const { id } = req.params;
-  Card.findById(id)
+  const { cardId } = req.params;
+  Card.findById(cardId)
     .orFail(() => {
       throw new DocumentNotFound('Такой карточки не существует!');
     })
