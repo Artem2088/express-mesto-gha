@@ -1,27 +1,27 @@
 /* eslint-disable no-console */
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const { errors } = require("celebrate");
-const userRouter = require("./routes/user");
-const cardRouter = require("./routes/card");
-const { login, createUser } = require("./controllers/user");
-const auth = require("./middlewares/auth");
-const { centralError } = require("./middlewares/centralError");
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
+const userRouter = require('./routes/user');
+const cardRouter = require('./routes/card');
+const { login, createUser } = require('./controllers/user');
+const auth = require('./middlewares/auth');
+const { centralError } = require('./middlewares/centralError');
 const {
   validationLogin,
   validationCreateUser,
-} = require("./middlewares/validation");
-const DocumentNotFound = require("./utils/documentNotFound");
-const { requestLogger, errorLogger } = require("./middlewares/logger");
+} = require('./middlewares/validation');
+const DocumentNotFound = require('./utils/documentNotFound');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
 const app = express();
 
 mongoose
-  .connect("mongodb://localhost:27017/mestodb", {
+  .connect('mongodb://localhost:27017/mestodb', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     family: 4,
@@ -43,21 +43,21 @@ app.use(requestLogger); // подключаем логгер запросов
 
 app.use(
   cors({
-    origin: ["domainname.artemyablonsky.nomoredomains.sbs"],
-  })
+    origin: ['domainname.artemyablonsky.nomoredomains.sbs'],
+  }),
 );
 
 // app.use(corsHandler());
-app.post("/signup", validationCreateUser, createUser);
-app.post("/signin", validationLogin, login);
+app.post('/signup', validationCreateUser, createUser);
+app.post('/signin', validationLogin, login);
 
-app.use("/", auth, userRouter);
-app.use("/", auth, cardRouter);
+app.use('/', auth, userRouter);
+app.use('/', auth, cardRouter);
 
 // обработчик не существующей страницы
-app.use("*", auth, (req, res, next) => {
+app.use('*', auth, (req, res, next) => {
   try {
-    next(new DocumentNotFound("Страница не найдена"));
+    next(new DocumentNotFound('Страница не найдена'));
   } catch (err) {
     next(err);
   }
