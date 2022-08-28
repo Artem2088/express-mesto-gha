@@ -1,11 +1,11 @@
 /* eslint-disable consistent-return */
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('../models/user');
-const DocumentNotFound = require('../utils/documentNotFound');
-const DuplicateError = require('../utils/duplicateError');
-const ErrorUnauthorized = require('../utils/errorUnauthorized');
-const BadRequest = require('../utils/badRequest');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const User = require("../models/user");
+const DocumentNotFound = require("../utils/documentNotFound");
+const DuplicateError = require("../utils/duplicateError");
+const ErrorUnauthorized = require("../utils/errorUnauthorized");
+const BadRequest = require("../utils/badRequest");
 
 // возвращает пользователя
 module.exports.getUserMe = async (req, res, next) => {
@@ -13,9 +13,9 @@ module.exports.getUserMe = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return next(new DocumentNotFound('Данного пользователя не существует!'));
+      return next(new DocumentNotFound("Данного пользователя не существует!"));
     }
-    res.send({ data: user });
+    res.send(user);
   } catch (err) {
     next(err);
   }
@@ -26,10 +26,10 @@ module.exports.login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
-        expiresIn: '7d',
+      const token = jwt.sign({ _id: user._id }, "some-secret-key", {
+        expiresIn: "7d",
       });
-      res.send({ token, message: 'Успешная авторизация' });
+      res.send({ token, message: "Успешная авторизация" });
     })
     .catch((err) => {
       if (err.code === 401) {
@@ -49,9 +49,7 @@ module.exports.getUsers = (req, res, next) => {
 
 // создаёт пользователя
 module.exports.createUser = async (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
   try {
     const hash = await bcrypt.hash(password, 10);
@@ -73,9 +71,17 @@ module.exports.createUser = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      next(new DuplicateError('Пользователь с таким `$(email)` уже существует'));
-    } else if (err.name === 'ValidationError') {
-      next(new BadRequest(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      next(
+        new DuplicateError("Пользователь с таким `$(email)` уже существует")
+      );
+    } else if (err.name === "ValidationError") {
+      next(
+        new BadRequest(
+          `${Object.values(err.errors)
+            .map((error) => error.message)
+            .join(", ")}`
+        )
+      );
     } else {
       next(err);
     }
@@ -87,7 +93,7 @@ module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail(() => {
-      throw new DocumentNotFound('Данного пользователя не существует!');
+      throw new DocumentNotFound("Данного пользователя не существует!");
     })
     .then((user) => res.send({ data: user }))
     .catch(next);
@@ -103,15 +109,15 @@ module.exports.patchMe = (req, res, next) => {
     {
       new: true, // обработчик then получит на вход обновлённую запись
       runValidators: true, // данные будут валидированы перед изменением
-    },
+    }
   )
     .orFail(() => {
-      throw new DocumentNotFound('Данного пользователя не существует!');
+      throw new DocumentNotFound("Данного пользователя не существует!");
     })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Некорректные данные при создании пользователя'));
+      if (err.name === "ValidationError") {
+        next(new BadRequest("Некорректные данные при создании пользователя"));
       } else {
         next(err);
       }
@@ -128,15 +134,15 @@ module.exports.patchAvatar = (req, res, next) => {
     {
       new: true,
       runValidators: true,
-    },
+    }
   )
     .orFail(() => {
-      throw new DocumentNotFound('Данного пользователя не существует!');
+      throw new DocumentNotFound("Данного пользователя не существует!");
     })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Некорректные данные при создании пользователя'));
+      if (err.name === "ValidationError") {
+        next(new BadRequest("Некорректные данные при создании пользователя"));
       } else {
         next(err);
       }
