@@ -8,6 +8,8 @@ const DuplicateError = require('../utils/duplicateError');
 const ErrorUnauthorized = require('../utils/errorUnauthorized');
 const BadRequest = require('../utils/badRequest');
 
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 // возвращает пользователя
 module.exports.getUserMe = async (req, res, next) => {
   const userId = req.user._id;
@@ -24,7 +26,6 @@ module.exports.getUserMe = async (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  const { NODE_ENV, JWT_SECRET } = process.env;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
