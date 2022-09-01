@@ -17,7 +17,7 @@ const {
 const DocumentNotFound = require('./utils/documentNotFound');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
-const { PORT = 3001, NODE_ENV } = process.env;
+const { PORT = 3000, NODE_ENV } = process.env;
 
 const app = express();
 
@@ -81,4 +81,6 @@ app.use(errorLogger); // подключаем логгер ошибок
 app.use(errors()); // обработчик ошибок celebrate
 app.use(centralError); // централизованный обработчик
 
-app.listen(NODE_ENV === 'production' ? PORT : 3001);
+app.listen(PORT, () => {
+  console.log(`App listening on port ${PORT || NODE_ENV}`);
+});
