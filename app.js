@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 require('dotenv').config();
-const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -21,14 +20,6 @@ const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { PORT = 3000 } = process.env;
 
 const app = express();
-
-const result = dotenv.config();
-
-if (result.error) {
-  throw result.error;
-}
-
-console.log(result.parsed);
 
 mongoose
   .connect('mongodb://localhost:27017/mestodb', {
